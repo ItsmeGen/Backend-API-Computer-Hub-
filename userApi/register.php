@@ -1,43 +1,37 @@
 <?php
-
 include '../productApi/db_conn.php';
+
 header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
 
 $data = json_decode(file_get_contents("php://input"), true);
-$email = $data['email'];
-$password = $data['password'];
 
-if (empty($email) || empty($password)) {
-    echo json_encode(["success" => false, "message" => "All fields are required!"]);
-    exit();
-}
+if (!empty($data['username']) && !empty($data['email']) && !empty($data['password'])) {
+    $username = mysqli_real_escape_string($conn, $data['username']);
+    $email = mysqli_real_escape_string($conn, $data['email']);
+    $password = password_hash($data['password'], PASSWORD_DEFAULT);
 
-$stmt = $conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$stmt->store_result();
+    $checkQuery = "SELECT id FROM users WHERE email = '$email'";
+    $checkResult = $conn->query($checkQuery);
 
-if ($stmt->num_rows > 0) {
-    $stmt->bind_result($id, $username, $hashedPassword);
-    $stmt->fetch();
-
-    if (password_verify($password, $hashedPassword)) {
-        echo json_encode([
-            "success" => true,
-            "message" => "Login successful!",
-            "user" => [
-                "id" => $id,
-                "username" => $username,
-                "email" => $email
-            ]
-        ]);
+    if ($checkResult->num_rows > 0) {
+        echo json_encode(["success" => false, "message" => "Email already exists"]);
     } else {
-        echo json_encode(["success" => false, "message" => "Incorrect password!"]);
+        $sql = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+        if ($conn->query($sql) === TRUE) {
+            echo json_encode(["success" => true, "message" => "User registered successfully"]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Error: " . $conn->error]);
+        }
     }
 } else {
-    echo json_encode(["success" => false, "message" => "User not found!"]);
+    echo json_encode(["success" => false, "message" => "All fields are required"]);
 }
 
-$stmt->close();
 $conn->close();
 ?>
+
+
