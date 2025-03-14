@@ -12,15 +12,22 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, username, password, status FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $stmt->store_result();
 
 if ($stmt->num_rows > 0) {
-    $stmt->bind_result($id, $username, $hashedPassword);
+    $stmt->bind_result($id, $username, $hashedPassword, $status);
     $stmt->fetch();
 
+ 
+    if ($status === "blocked") {
+        echo json_encode(["success" => false, "message" => "Your account is blocked. Contact support."]);
+        exit();
+    }
+
+   
     if (password_verify($password, $hashedPassword)) {
         echo json_encode([
             "success" => true,
