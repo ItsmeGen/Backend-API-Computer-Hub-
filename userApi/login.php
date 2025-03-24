@@ -39,7 +39,7 @@ if ($stmt->num_rows > 0) {
             ]
         ]);
     } else {
-        echo json_encode(["success" => false, "message" => "Incorrect password!"]);
+        echo json_encode(["success" => false, "message" => "Incorrect Email or Password"]);
     }
 } else {
     echo json_encode(["success" => false, "message" => "User not found!"]);
