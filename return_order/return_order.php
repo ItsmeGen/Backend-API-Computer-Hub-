@@ -5,7 +5,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
-
 include '../productApi/db_conn.php';
 
 $response = ["success" => false, "error" => "Unknown error"]; // Default response
@@ -17,10 +16,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Check if id is provided
     if (isset($input['id'])) {
-        $orderId = intval($input['id']); 
+        $orderId = intval($input['id']); // Sanitize input
 
         // Prepare SQL statement
-        $sql = "UPDATE orders SET order_status = 'Cancelled' WHERE id = ?";
+        $sql = "UPDATE orders SET order_status = 'Returned' WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $orderId);
 
